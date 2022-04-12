@@ -14,6 +14,8 @@ namespace BTS.AzAD.WCFAdapaterEx
     public class AdapterAuthToken
     {
         public string id { get; set; }
+
+        public string expires_in { get; set; }
         public string issued_at { get; set; }
         public string refresh_token { get; set; }
         public string instance_url { get; set; }

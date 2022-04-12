@@ -27,10 +27,13 @@ namespace BTS.AzAD.WCFAdapaterEx
         private string _resourceId;
         private string _tenantid;
 
+        private static DateTime? _tokenExpieryTime;
+        private readonly object _getTokenThreadLock = new object();
+
         private readonly HttpClient _httpClient;
 
         // internal properties
-        private AdapterAuthToken _token;
+        private static AdapterAuthToken _token;
 
         public AzureADSecurityBehaviour(IHttpClientFactory httpClientFactory, string grantType,string tenantId, string clientId, string clientSecret, string resouceId, string userName, string userPassword)
         {
@@ -72,42 +75,70 @@ namespace BTS.AzAD.WCFAdapaterEx
             }
 
             WebHeaderCollection headers = httpRequest.Headers;
-            FetchAuthToken();
+
+            if (TokenHasExpired())
+            {
+                FetchAuthToken();
+            }
 
             headers.Add(HttpRequestHeader.ContentType, "application/json");
-            headers.Add(HttpRequestHeader.Authorization, "Bearer " + this._token.access_token);
+            headers.Add(HttpRequestHeader.Authorization, "Bearer " + _token.access_token);
 
             return null;
         }
 
         private void FetchAuthToken()
         {
-            string body = "grant_type={0}&client_id={1}&client_secret={2}&resource={3}";
-
-            body = String.Format(body, _grantType, _clientId, _clientSecret, _resourceId);
-
-            if (_grantType == "password".ToLower())
+            lock (this._getTokenThreadLock)
             {
-                body = body + "&username={0}&password={1}";
-                body = String.Format(body, _userName, _userPwd);
-            }
+                if (!TokenHasExpired())
+                {
+                    return;
+                }
 
-            var __authUri = String.Format(_authorityUri, _tenantid);
+                string body = "grant_type={0}&client_id={1}&client_secret={2}&resource={3}";
 
-            string result;
+                body = String.Format(body, _grantType, _clientId, _clientSecret, _resourceId);
 
-            try
-            {
-                result = HttpPost(__authUri, body).Result.ToString();
-            }
-            catch (WebException)
-            {
+                if (_grantType == "password".ToLower())
+                {
+                    body = body + "&username={0}&password={1}";
+                    body = String.Format(body, _userName, _userPwd);
+                }
 
-                throw;
-            }
+                var __authUri = String.Format(_authorityUri, _tenantid);
 
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            this._token = ser.Deserialize<AdapterAuthToken>(result);
+                string result;
+
+                try
+                {
+                    result = HttpPost(__authUri, body).Result.ToString();
+                }
+                catch (WebException)
+                {
+
+                    throw;
+                }
+
+                JavaScriptSerializer ser = new JavaScriptSerializer();
+                _token = ser.Deserialize<AdapterAuthToken>(result);
+
+                int.TryParse(_token.expires_in, out int expiresInSeconds);
+
+                _tokenExpieryTime = DateTime.Now.AddSeconds(expiresInSeconds);
+
+            }        
+        }
+
+        private bool TokenHasExpired()
+        {
+            if (_tokenExpieryTime == null || !_tokenExpieryTime.HasValue)
+                return true;
+
+            if (DateTime.Now.AddSeconds(-300) >= _tokenExpieryTime.Value)
+                return true;
+
+            return false;
         }
 
         private async Task<string> HttpPost(string authUri, string p)
