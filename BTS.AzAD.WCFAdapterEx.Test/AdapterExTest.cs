@@ -15,9 +15,9 @@ namespace BTS.AzAD.WCFAdapterEx.Test
     [TestClass]
     public class AdapterExTest
     {
-        const string clientId = "2b1d9843-99f8-41f9-b098-d1b9610008f1"; //"ec09904f-0164-4176-a0ce-02749513c8e1";
-        const string tenantId = "544d9264-3ce2-4aec-aa71-34d87c705442"; //"8614f00a-7ea9-4b2a-bba6-160b29e5a7a7";
-        const string clientSecret = "NTS7Q~LlAfjaFRoIPAEssHey3bM67ipQI287p"; //"ZOA7Q~CedNEUVVXuhkulaceltsidzM4k5r3ki";
+        const string clientId = "<your clientId>";
+        const string tenantId = "<your tenantId>";
+        const string clientSecret = "<your client secret>";
 
         readonly IServiceCollection serviceCollection = new ServiceCollection();
         readonly IHttpClientFactory clientFactory;
