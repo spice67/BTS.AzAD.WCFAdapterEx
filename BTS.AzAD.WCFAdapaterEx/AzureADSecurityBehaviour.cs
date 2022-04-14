@@ -26,6 +26,7 @@ namespace BTS.AzAD.WCFAdapaterEx
         private string _clientSecret;
         private string _resourceId;
         private string _tenantid;
+        private int _tokenFetchInterval = 300;
 
         private static DateTime? _tokenExpieryTime;
         private readonly object _getTokenThreadLock = new object();
@@ -35,7 +36,7 @@ namespace BTS.AzAD.WCFAdapaterEx
         // internal properties
         private static AdapterAuthToken _token;
 
-        public AzureADSecurityBehaviour(IHttpClientFactory httpClientFactory, string grantType,string tenantId, string clientId, string clientSecret, string resouceId, string userName, string userPassword)
+        public AzureADSecurityBehaviour(IHttpClientFactory httpClientFactory, string grantType,string tenantId, string clientId, string clientSecret, string resouceId, string userName, string userPassword, string tokenFetchInterval)
         {
             _grantType = grantType;
             _clientId = clientId;
@@ -44,6 +45,8 @@ namespace BTS.AzAD.WCFAdapaterEx
             _userName = userName;
             _userPwd = userPassword;
             _tenantid = tenantId;
+
+            int.TryParse(tokenFetchInterval, out _tokenFetchInterval);
 
             _httpClient = httpClientFactory.CreateClient();
         }
@@ -135,7 +138,7 @@ namespace BTS.AzAD.WCFAdapaterEx
             if (_tokenExpieryTime == null || !_tokenExpieryTime.HasValue)
                 return true;
 
-            if (DateTime.Now.AddSeconds(-300) >= _tokenExpieryTime.Value)
+            if (DateTime.Now.AddSeconds(-1 * _tokenFetchInterval) >= _tokenExpieryTime.Value)
                 return true;
 
             return false;

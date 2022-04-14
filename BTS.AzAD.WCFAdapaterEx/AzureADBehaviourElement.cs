@@ -30,7 +30,7 @@ namespace BTS.AzAD.WCFAdapaterEx
 
         protected override object CreateBehavior()
         {
-           return new AzureADSecurityBehaviour(httpClientFactory, GrantType,TenantId,ClientId,ClientSecret,ResourceId,Username,Password);
+           return new AzureADSecurityBehaviour(httpClientFactory, GrantType,TenantId,ClientId,ClientSecret,ResourceId,Username,Password, TokenFetchInterval);
         }
 
         [ConfigurationProperty("granttype", IsRequired = true)]
@@ -80,6 +80,19 @@ namespace BTS.AzAD.WCFAdapaterEx
         {
             get { return (string)this["resourceId"]; }
             set { this["resourceId"] = value; }
+        }
+
+        [ConfigurationProperty("tokenFetchInterval")]
+        public string TokenFetchInterval
+        {
+            get
+            {
+                return (string)this["tokenFetchInterval"];
+            }
+            set
+            {
+                this["tokenFetchInterval"] = value;
+            }
         }
     }
 }
