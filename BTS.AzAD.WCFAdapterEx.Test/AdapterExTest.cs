@@ -19,6 +19,8 @@ namespace BTS.AzAD.WCFAdapterEx.Test
         const string tenantId = "<your tenantId>";
         const string clientSecret = "<your client secret>";
 
+        int _tokenFetchInterval = 300;
+
         readonly IServiceCollection serviceCollection = new ServiceCollection();
         readonly IHttpClientFactory clientFactory;
         public AdapterExTest()
@@ -32,7 +34,7 @@ namespace BTS.AzAD.WCFAdapterEx.Test
         {
             var _adapterBehovior = new WCFAdapaterEx.AzureADSecurityBehaviour(clientFactory, grantType: "client_credentials", tenantId: tenantId, 
                                                                 clientId: clientId, clientSecret: clientSecret, 
-                                                                resouceId: "https%3A%2F%2Fservicebus.azure.net", userName: "n/a", userPassword: "n/a");
+                                                                resouceId: "https%3A%2F%2Fservicebus.azure.net", userName: "n/a", userPassword: "n/a", tokenFetchInterval: _tokenFetchInterval.ToString());
             var msg = Message.CreateMessage(MessageVersion.Default, "");
             _adapterBehovior.BeforeSendRequest(ref msg, null);
 
